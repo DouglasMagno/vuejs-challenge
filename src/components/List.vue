@@ -17,6 +17,17 @@
             <span class="column-drag-handle">&#x2630;</span>
             {{ list.id }} <span title="Remove list" class="remove-item" @click="removeList(list.id)">&times;</span>
           </div>
+          <Container
+            group-name="col"
+            @drop="(e) => onCardDrop(list.id, e)"
+            @drag-start="(e) => myLog('drag start', e)"
+            @drag-end="(e) => myLog('drag end', e)"
+            :get-child-payload="getCardPayload(list.id)"
+            drag-class="card-ghost"
+            drop-class="card-ghost-drop"
+          >
+
+          </Container>
         </div>
       </Draggable>
     </Container>
@@ -98,6 +109,31 @@ export default {
     },
 
     /**
+     * Handler to change cards when they are dropped
+     * @param columnId
+     * @param dropResult
+     */
+    onCardDrop(columnId, dropResult) {
+      if (dropResult.removedIndex !== null || dropResult.addedIndex !== null) {
+        const column = this.lists.filter(p => p.id === columnId)[0]
+        const columnIndex = this.lists.indexOf(column)
+        const newColumn = Object.assign({}, column)
+        newColumn.cards = this.applyDrag(newColumn.cards, dropResult)
+        this.lists.splice(columnIndex, 1, newColumn)
+      }
+    },
+
+    /**
+     * Get card payload on drag to perform mutation
+     * @param columnId
+     */
+    getCardPayload(columnId) {
+      return index => {
+        return this.lists.filter(p => p.id === columnId)[0].cards[index]
+      }
+    },
+
+    /**
      * this method it will run when start a drag
      */
     dragStart() {
@@ -111,6 +147,13 @@ export default {
     getListKey(listId) {
       const column = this.lists.filter(p => p.id === listId)[0];
       return this.lists.indexOf(column);
+    },
+
+    /**
+     * My log handler to debug
+     */
+    myLog(...log) {
+
     },
 
     /**
@@ -200,6 +243,16 @@ export default {
     &:hover {
       color: black;
     }
+  }
+
+  .card-ghost {
+    transition: transform .18s ease;
+    transform: rotate(5deg)
+  }
+
+  .card-ghost-drop {
+    transition: transform .18s ease-in-out;
+    transform: rotate(0deg)
   }
 
 </style>
