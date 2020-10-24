@@ -6,8 +6,13 @@
 </template>
 
 <script>
+import {Container, Draggable} from 'vue-smooth-dnd';
 export default {
   name: "List",
+  components: {
+    Container,
+    Draggable
+  },
   data() {
     return {
       newList: '',
