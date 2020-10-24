@@ -26,7 +26,14 @@
             drag-class="card-ghost"
             drop-class="card-ghost-drop"
           >
-
+            <Draggable v-if="list.cards.length" v-for="(card, index) in list.cards" :key="card.id">
+              <div v-if="!card.editing" @dblclick="editTodo(indexList, index)" class="card">{{ card.id }} - {{ card.name }}
+                <div title="Remove todo" class="remove-item" @click="removeTodo(indexList, index)">&times;</div>
+              </div>
+              <input v-else class="todo-item-edit" type="text" v-model="card.name"
+                     @blur="doneEdit(indexList, index, card)" @keyup.enter="doneEdit(indexList, index, card)"
+                     @keyup.esc="cancelEdit(indexList, index)" v-focus>
+            </Draggable>
           </Container>
         </div>
       </Draggable>
@@ -46,13 +53,23 @@ export default {
   data() {
     return {
       newList: '',
+      beforeEditCache: '',
+      tempTable: null,
+      tempColumn: null,
       lists: [
         {
           id: "First List",
           cards: [],
-        }
+        },
       ],
     };
+  },
+  directives: {
+    focus: {
+      inserted: function (el) {
+        el.focus();
+      }
+    }
   },
   methods: {
     /**
@@ -98,6 +115,50 @@ export default {
           }
       );
 
+    },
+
+    /**
+     * Open todocard to edit
+     * @param list
+     * @param index
+     */
+    editTodo(list, index) {
+      this.beforeEditCache = this.lists[list].cards[index].name;
+      this.$set(this.lists[list].cards[index], "editing", true);
+    },
+
+    /**
+     * Finish a edition on a card
+     * @param list
+     * @param index
+     * @param todo
+     */
+    doneEdit(list, index, todo) {
+      if (todo.name.trim().length === 0) {
+        this.$set(this.lists[list].cards[index], "name", this.beforeEditCache);
+      }
+      this.$set(this.lists[list].cards[index], "editing", false);
+    },
+
+    /**
+     * Cancel an edition
+     * @param list
+     * @param index
+     * @param todo
+     */
+    cancelEdit(list, index, todo) {
+      this.$set(this.lists[list].cards[index], "name", this.beforeEditCache);
+      this.$set(this.lists[list].cards[index], "editing", false);
+    },
+
+    /**
+     * Remove a todocard on a list
+     * @param list
+     * @param index
+     * @param todo
+     */
+    removeTodo(list, index, todo) {
+      this.$delete(this.lists[list].cards, index);
     },
 
     /**
@@ -209,6 +270,11 @@ export default {
     grid-gap: 10px;
   }
 
+  .card {
+    margin: 5px;
+    background-color: #fff
+  }
+
   .card-container {
     width: 320px;
     margin: 5px;
@@ -253,6 +319,20 @@ export default {
   .card-ghost-drop {
     transition: transform .18s ease-in-out;
     transform: rotate(0deg)
+  }
+
+  .todo-item-edit {
+    font-size: 24px;
+    color: #2c3e50;
+    margin-left: 12px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+
+    &:focus {
+      outline: none;
+    }
   }
 
 </style>
