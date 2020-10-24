@@ -1,7 +1,16 @@
 /* eslint-disable no-console */
 const execa = require("execa");
 const fs = require("fs");
-var path = require("path");
+const path = require("path");
+const removeDir = (dir) => {
+    try {
+        fs.rmdirSync(dir, { recursive: true });
+
+        console.log(`${dir} is deleted!`);
+    } catch (err) {
+        console.error(`Error while deleting ${dir}.`);
+    }
+};
 (async () => {
     try {
         await execa("git", ["checkout", "--orphan", "gh-pages"]);
@@ -14,7 +23,8 @@ var path = require("path");
         await execa("git", ["--work-tree", folderName, "commit", "-m", "gh-pages"]);
         console.log("Pushing to gh-pages...");
         await execa("git", ["push", "origin", "HEAD:gh-pages", "--force"]);
-        await execa("rmdir /Q /S", ['"'+path.resolve(folderName)+'"']);
+        // await execa("rmdir /Q /S", ['"'+path.resolve(folderName)+'"']);
+        removeDir(path.resolve(folderName));
         await execa("git", ["checkout", "-f", "master"]);
         await execa("git", ["branch", "-D", "gh-pages"]);
         console.log("Successfully deployed, check your settings");
